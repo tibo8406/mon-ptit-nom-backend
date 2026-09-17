@@ -1,13 +1,95 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Utilisateurs (Parents & Invités)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Mots de passe hachés
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+
+  memberships ProjectMember[]
+  votes       Vote[]
+}
+
+// 2. Projets Bébé
+model BabyProject {
+  id          String   @id @default(uuid())
+  title       String   // ex: "Bébé de Thomas & Sarah"
+  gender      Gender   // MALE, FEMALE, MIXED
+  inviteCode  String   @unique // Token unique pour le lien d'invitation
+  createdAt   DateTime @default(now())
+
+  members ProjectMember[]
+  votes   Vote[]
+}
+
+// 3. Rôles et membres d'un projet
+model ProjectMember {
+  id        String     @id @default(uuid())
+  role      Role       @default(GUEST) // PARENT (Admin) ou GUEST (Invité)
+  group     GuestGroup @default(FRIEND) // FAMILY, FRIEND, WORK, OTHER
+  
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId String
+  project   BabyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId]) // Un utilisateur ne peut être membre qu'une fois par projet
+}
+
+// 4. Catalogue des Prénoms
+model Name {
+  id     String @id @default(uuid())
+  first  String // Le prénom
+  gender Gender
+  origin String?
+
+  votes Vote[]
+}
+
+// 5. Votes (Top 5 pondéré)
+model Vote {
+  id        String   @id @default(uuid())
+  rank      Int      // Rang de 1 à 5
+  points    Int      // Points de 5 à 1
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   BabyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  nameId    String
+  name      Name     @relation(fields: [nameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, rank])   // Pas de doublon de rang par utilisateur/projet
+  @@unique([userId, projectId, nameId]) // Pas de vote double pour un même prénom
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  MIXED
+}
+
+enum Role {
+  PARENT
+  GUEST
+}
+
+enum GuestGroup {
+  FAMILY
+  FRIEND
+  WORK
+  OTHER
 }
