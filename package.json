@@ -1,0 +1,23 @@
+{
+    "name": "mon-ptit-nom-backend",
+    "version": "1.0.0",
+    "description": "Mon P'tit Nom est web-app permettant aux futurs parents de faire participer leur entourage (famille, amis) dans le choix du prénom de leur futur bébé.",
+    "main": "index.js",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^22.20.3",
+        "prisma": "^7.10.0",
+        "tsx": "^4.23.13",
+        "typescript": "^7.0.2"
+    },
+    "dependencies": {
+        "@prisma/client": "^7.10.0"
+    }
+}
